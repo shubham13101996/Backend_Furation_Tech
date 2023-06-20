@@ -4,7 +4,7 @@ const Todo = require("../models/todoModel");
 //@route GET /api/todos
 //@access private
 const getTodos = asyncHandler(async (req, res) => {
-  const todos = await Todo.find({});
+  const todos = await Todo.find({ user_id: req.user.id });
   res.status(200).json(todos);
 });
 
@@ -22,6 +22,7 @@ const createTodo = asyncHandler(async (req, res) => {
     title,
     description,
     status,
+    user_id: req.user.id,
   });
 
   res.status(201).json(todo);
@@ -49,6 +50,13 @@ const updateTodo = asyncHandler(async (req, res) => {
     throw new Error("Todo not found");
   }
 
+  if (todo.user_id.toString() !== req.user.id) {
+    res.status(403);
+    throw new Error(
+      "User don't have permission to update other user todo list"
+    );
+  }
+
   const updatedTodo = await Todo.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
   });
@@ -65,7 +73,12 @@ const deleteTodo = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Todo not found");
   }
-
+  if (todo.user_id.toString() !== req.user.id) {
+    res.status(403);
+    throw new Error(
+      "User don't have permission to delete other user todo list"
+    );
+  }
   await todo.deleteOne({ _id: req.params.id });
   res.status(200).json(todo);
 });

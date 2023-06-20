@@ -7,7 +7,9 @@ const {
   updateTodo,
   deleteTodo,
 } = require("../controllers/todoControllers");
+const validateToken = require("../middleware/validateTokenHandler");
 
+router.use(validateToken);
 router.route("/").get(getTodos).post(createTodo);
 router.route("/:id").get(getTodo).put(updateTodo).delete(deleteTodo);
 
